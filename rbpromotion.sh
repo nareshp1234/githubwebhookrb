@@ -30,9 +30,15 @@ if echo "$RESPONSE" | jq -e '.created' > /dev/null; then
     SUCCESS_MESSAGES=$(echo "$RESPONSE")
     echo "Success details: $SUCCESS_MESSAGES"
 else
-    # If the "created" key is not present, it indicates an error
-    echo "Failed to promote the release bundle."
-    ERROR_DETAILS=$(echo "$RESPONSE")
-    echo "Error details: $ERROR_DETAILS"
+    # If the "created" key is not present, check for "errors"
+    if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+        # If the "errors" key is present, output the error details
+        echo "Failed to promote the release bundle."
+        ERROR_MESSAGES=$(echo "$RESPONSE" | jq -r '.errors[] | .message')
+        echo "Error details: $ERROR_MESSAGES"
+    else
+        # If no known response format is found
+        echo "Unexpected response format or no messages found."
+    fi
     exit 1
-fi 
+fi
