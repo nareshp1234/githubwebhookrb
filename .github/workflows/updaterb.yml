@@ -7,23 +7,17 @@ on:
     # inputs are optional, they may be used to convey contextual data
     # from the JFrog event to the workflow.
     inputs:
-      artifact_path: 
-        required: true 
-        type: string
       url: 
         required: true 
         type: string
       token: 
         required: true 
         type: string
-      target_repo:
-        description: 'Target repository'
-        required: true
+
 
 jobs:
   build:
     env:
-       ARTIFACT_PATH: ${{ inputs.artifact_path }}
        ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
     runs-on: ubuntu-latest
     steps:
@@ -34,10 +28,6 @@ jobs:
         run: |
           MY_WORK_DIR=${{ github.workspace }}
           
-         
-      - name: Print artifact_path
-        run: echo  The path is ${{ inputs.artifact_path }}
-
       - name: Print url
         run: echo  The path is ${{ inputs.url }}
 
@@ -47,15 +37,8 @@ jobs:
       - name: Set up Environment Variables
         run: |
           echo "JFROG_URL=${{ inputs.url }}" >> $GITHUB_ENV
-          echo "SOURCE_REPO=$(echo ${ARTIFACT_PATH} | cut -d'/' -f1)" >> $GITHUB_ENV
-          echo "TARGET_REPO=${{ inputs.target_repo }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=$(echo ${ARTIFACT_PATH} | cut -d'/' -f2)" >> $GITHUB_ENV
-          echo "TAG=$(echo ${ARTIFACT_PATH} | cut -d'/' -f3)" >> $GITHUB_ENV
 
-      - name: Run Shell Script
+      - name: Message
         run: |
-          chmod +x $GITHUB_WORKSPACE/dockercopy.sh
-          $GITHUB_WORKSPACE/dockercopy.sh "$JFROG_URL" "$ACCESS_TOKEN" "$SOURCE_REPO" "$TARGET_REPO" "$IMAGE_NAME" "$TAG"
+          echo "Hello world"
 
-
-        
