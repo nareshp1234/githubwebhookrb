@@ -1,7 +1,7 @@
 #!/bin/bash
 # Check for the correct number of arguments
 
-if [ "$#" -ne 6 ]; then
+if [ "$#" -ne 5 ]; then
     echo "Usage: $0 <jfrog_url> <access_token> <releasebundle_name> <releasebundle_version> <environment>"
     exit 1
 fi
@@ -19,7 +19,7 @@ RELEASEBUNDLE_PROMOTION_API_URL="$JFROG_URL/lifecycle/api/v2/promotion/records/$
 # Send the promotion request and capture the response as well as the HTTP status code
 RESPONSE=$(curl -s -X POST "$RELEASEBUNDLE_PROMOTION_API_URL" \
 -H "Content-Type: application/json" \
--d "{ "environment": $ENVIRONMENT,"included_repository_keys": [],"excluded_repository_keys": [] }"
+-d "{ \"environment\": \"$ENVIRONMENT\",\"included_repository_keys\": [],\"excluded_repository_keys\": [] }" \
 -H "Authorization: Bearer $ACCESS_TOKEN")
 
 # Check for success or failure in the response
