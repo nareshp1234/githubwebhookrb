@@ -52,7 +52,7 @@ jobs:
           echo "JFROG_URL=${{ inputs.url }}" >> $GITHUB_ENV
           echo "RELEASEBUNDLE_NAME=${{ inputs.release_bundle }}" >> $GITHUB_ENV
           echo "RELEASEBUNDLE_VERSION=${{ inputs.bundle_version }}" >> $GITHUB_ENV
-          echo "environment=${{ inputs.ENVIRONMENT }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
 
       - name: Run Shell Script
         run: |
