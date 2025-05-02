@@ -8,7 +8,7 @@ on:
     # inputs are optional, they may be used to convey contextual data
     # from the JFrog event to the workflow.
     inputs:
-      artifact_path: 
+      name: 
         required: true 
         type: string
 jobs:
@@ -16,4 +16,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print artifact_path
-        run: echo  The path is ${{ inputs.artifact_path }}
+        run: echo  The path is ${{ inputs.name }}
