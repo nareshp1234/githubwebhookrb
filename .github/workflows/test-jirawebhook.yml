@@ -33,4 +33,4 @@ jobs:
         run: echo  The path is ${{ inputs.release_bundle }}
 
       - name: Print all
-        run: echo  The path is ${{ inputs.bundle_version }} and ${{ inputs.artifact_path }}
+        run: echo "The path is ${{ inputs.bundle_version }} and ${{ inputs.artifact_path }}"
