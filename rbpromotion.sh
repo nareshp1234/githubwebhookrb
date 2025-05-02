@@ -21,6 +21,7 @@ RESPONSE=$(curl -s -X POST "$RELEASEBUNDLE_PROMOTION_API_URL" \
 -H "Content-Type: application/json" \
 -d "{ \"environment\": \"$ENVIRONMENT\",\"included_repository_keys\": [],\"excluded_repository_keys\": [] }" \
 -H "Authorization: Bearer $ACCESS_TOKEN")
+echo "$RESPONSE"
 
 # Check for success or failure in the response
 if echo "$RESPONSE" | jq -e '.messages[] | select(.level == "ERROR")' > /dev/null; then
