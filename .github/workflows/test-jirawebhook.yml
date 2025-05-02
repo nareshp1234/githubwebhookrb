@@ -20,6 +20,9 @@ on:
       environment:
         required: true 
         type: string
+      url:
+        required: true 
+        type: string
       
       
 jobs:
