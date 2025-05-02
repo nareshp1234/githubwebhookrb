@@ -23,20 +23,16 @@ RESPONSE=$(curl -s -X POST "$RELEASEBUNDLE_PROMOTION_API_URL" \
 -H "Authorization: Bearer $ACCESS_TOKEN")
 echo "$RESPONSE"
 
-# Check for success or failure in the response
-if echo "$RESPONSE" | jq -e '.messages[] | select(.level == "ERROR")' > /dev/null; then
-    # If there are error messages, handle the failure
-    echo "Failed to promote Docker image."
-    ERROR_MESSAGES=$(echo "$RESPONSE" | jq -r '.messages[] | select(.level == "ERROR") | .message')
-    echo "Error details: $ERROR_MESSAGES"
-    exit 1 
-elif echo "$RESPONSE" | jq -e '.created[] | select(.level == "INFO") | .created' > /dev/null; then
-    # If there are info messages indicating success
+# Check for success based on the presence of the "created" key
+if echo "$RESPONSE" | jq -e '.created' > /dev/null; then
+    # If the "created" key is present, it indicates success
     echo "Release bundle promotion was successful."
     SUCCESS_MESSAGES=$(echo "$RESPONSE")
     echo "Success details: $SUCCESS_MESSAGES"
 else
-    # If no relevant message is found
-    echo "Unexpected response format or no messages found."
+    # If the "created" key is not present, it indicates an error
+    echo "Failed to promote the release bundle."
+    ERROR_DETAILS=$(echo "$RESPONSE")
+    echo "Error details: $ERROR_DETAILS"
     exit 1
-fi
+fi 
