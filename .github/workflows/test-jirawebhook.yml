@@ -24,6 +24,8 @@ on:
       
 jobs:
   build:
+    env:
+       ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - name: Print name
@@ -34,3 +36,8 @@ jobs:
 
       - name: Print all
         run: echo "The path is ${{ inputs.bundle_version }}"
+
+      - name: Set up Environment Variables
+        run: |
+          echo "JFROG_URL=${{ inputs.url }}" >> $GITHUB_ENV
+
