@@ -28,6 +28,13 @@ jobs:
        ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: test
+        run: |
+          MY_WORK_DIR=${{ github.workspace }}
+
       - name: Print name
         run: echo  The path is ${{ inputs.name }}
 
@@ -40,4 +47,12 @@ jobs:
       - name: Set up Environment Variables
         run: |
           echo "JFROG_URL=${{ inputs.url }}" >> $GITHUB_ENV
+          echo "RELEASEBUNDLE_NAME=${{ inputs.release_bundle }}" >> $GITHUB_ENV
+          echo "RELEASEBUNDLE_VERSION=${{ inputs.bundle_version }}" >> $GITHUB_ENV
+          echo "environment=${{ inputs.ENVIRONMENT }}" >> $GITHUB_ENV
+
+      - name: Run Shell Script
+        run: |
+          chmod +x $GITHUB_WORKSPACE/rbpromotion.sh
+          $GITHUB_WORKSPACE/rbpromotion.sh "$JFROG_URL" "$ACCESS_TOKEN" "$RELEASEBUNDLE_NAME" "$RELEASEBUNDLE_VERSION" "$ENVIRONMENT"
 
