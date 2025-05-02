@@ -30,10 +30,10 @@ if echo "$RESPONSE" | jq -e '.messages[] | select(.level == "ERROR")' > /dev/nul
     ERROR_MESSAGES=$(echo "$RESPONSE" | jq -r '.messages[] | select(.level == "ERROR") | .message')
     echo "Error details: $ERROR_MESSAGES"
     exit 1 
-elif echo "$RESPONSE" | jq -e '.messages[] | select(.level == "INFO")' > /dev/null; then
+elif echo "$RESPONSE" | jq -e '.created[] | select(.level == "INFO") | .created' > /dev/null; then
     # If there are info messages indicating success
-    echo "Docker image promotion was successful."
-    SUCCESS_MESSAGES=$(echo "$RESPONSE" | jq -r '.messages[] | select(.level == "INFO") | .message')
+    echo "Release bundle promotion was successful."
+    SUCCESS_MESSAGES=$(echo "$RESPONSE")
     echo "Success details: $SUCCESS_MESSAGES"
 else
     # If no relevant message is found
