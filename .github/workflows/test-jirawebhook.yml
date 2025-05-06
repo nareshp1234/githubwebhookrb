@@ -42,7 +42,6 @@ jobs:
         id: setup-cli
         env:
           JF_URL: https://${{ vars.JF_URL }}/
-          JF_PROJECT: ${{ vars.JF_PROJECT }}
         with:
             oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
@@ -57,18 +56,10 @@ jobs:
       - name: Print name
         run: echo  The path is ${{ inputs.name }}
 
-      - name: Print release_bundle
-        run: echo  The path is ${{ inputs.release_bundle }}
+      - name : jf test
+        run : sh 'jf c show'
 
-      - name: Print all
-        run: echo "The path is ${{ inputs.bundle_version }}"
 
-      - name: Set up Environment Variables
-        run: |
-          echo "JFROG_URL=${{ inputs.url }}" >> $GITHUB_ENV
-          echo "RELEASEBUNDLE_NAME=${{ inputs.release_bundle }}" >> $GITHUB_ENV
-          echo "RELEASEBUNDLE_VERSION=${{ inputs.bundle_version }}" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
 
 
 
