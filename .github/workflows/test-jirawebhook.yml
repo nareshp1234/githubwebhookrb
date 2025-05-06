@@ -42,7 +42,7 @@ jobs:
           JF_URL: https://${{ vars.JF_URL }}/
         with:
             oidc-provider-name: nareshgithub
-            oidc-audience: github.com
+            oidc-audience: ps-jfrog-oidc
     
       - name: Checkout
         uses: actions/checkout@v3
