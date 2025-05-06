@@ -33,7 +33,7 @@ permissions:
 jobs:
   build:
     env:
-       JF_URL: https://${{ vars.JF_URL }}/
+       JF_URL: ${{ vars.JF_URL }}/
     runs-on: ubuntu-latest
     steps:
       # Use the specific setup-cli branch
