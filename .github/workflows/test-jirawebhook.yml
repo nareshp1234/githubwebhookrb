@@ -55,7 +55,7 @@ jobs:
         run: echo  The path is ${{ inputs.name }}
 
       - name : jf test
-        run : sh 'jf c show'
+        run : jf c show
 
 
 
