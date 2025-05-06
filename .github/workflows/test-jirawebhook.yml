@@ -23,14 +23,30 @@ on:
       url:
         required: true 
         type: string
-      
-      
+
+permissions:
+  actions: read # for detecting the Github Actions environment.
+  id-token: write # for creating OIDC tokens for signing..
+  packages: write # for uploading attestations.
+  contents: read
+          
 jobs:
   build:
     env:
-       ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
+       JF_URL: https://${{ vars.JF_URL }}/
     runs-on: ubuntu-latest
     steps:
+      # Use the specific setup-cli branch
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        id: setup-cli
+        env:
+          JF_URL: https://${{ vars.JF_URL }}/
+          JF_PROJECT: ${{ vars.JF_PROJECT }}
+        with:
+            oidc-provider-name: nareshgithub
+            oidc-audience: ps-jfrog-oidc
+    
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -54,8 +70,5 @@ jobs:
           echo "RELEASEBUNDLE_VERSION=${{ inputs.bundle_version }}" >> $GITHUB_ENV
           echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
 
-      - name: Run Shell Script
-        run: |
-          chmod +x $GITHUB_WORKSPACE/rbpromotion.sh
-          $GITHUB_WORKSPACE/rbpromotion.sh "$JFROG_URL" "$ACCESS_TOKEN" "$RELEASEBUNDLE_NAME" "$RELEASEBUNDLE_VERSION" "$ENVIRONMENT"
+
 
