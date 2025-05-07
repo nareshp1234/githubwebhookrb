@@ -43,22 +43,11 @@ jobs:
         with:
             oidc-provider-name: naresh-custom
             oidc-audience: ps-jfrog-oidc
-    
-      - name: Checkout
-        uses: actions/checkout@v3
 
-      - name: test
-        run: |
-          MY_WORK_DIR=${{ github.workspace }}
+      - name: Promote release bundle
+        run: jf rbp ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
 
-      - name: Print name
-        run: echo  The path is ${{ inputs.name }}
 
-      - name: Print url
-        run: echo  The url is ${{ inputs.url }}
-
-      - name : jf test
-        run : jf c show
 
 
 
