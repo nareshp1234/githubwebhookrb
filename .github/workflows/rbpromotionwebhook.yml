@@ -54,6 +54,9 @@ jobs:
       - name: Print name
         run: echo  The path is ${{ inputs.name }}
 
+      - name: Print url
+        run: echo  The url is ${{ inputs.url }}
+
       - name : jf test
         run : jf c show
 
