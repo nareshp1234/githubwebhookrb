@@ -55,7 +55,7 @@ jobs:
       
 
       - name: show JF configurations
-        run: jf c show
+        run: jf c rm setup-jfrog-cli-server
 
       
 
