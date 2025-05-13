@@ -20,7 +20,10 @@ on:
       environment:
         required: true 
         type: string
-      url:
+      targeturl:
+        required: true 
+        type: string
+      sourceurl:
         required: true 
         type: string
 
@@ -37,11 +40,21 @@ jobs:
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
-        id: setup-cli
+        id: setup-cli-target
         env:
-          JF_URL: https://${{ inputs.url }}/
+          JF_URL: https://${{ inputs.targeturl }}/
         with:
             oidc-provider-name: nareshgithub
+            oidc-audience: ps-jfrog-oidc
+
+      # Use the specific setup-cli branch
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        id: setup-cli-dr
+        env:
+          JF_URL: https://${{ inputs.sourceurl }}/
+        with:
+            oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
 
       - name: Promote release bundle
