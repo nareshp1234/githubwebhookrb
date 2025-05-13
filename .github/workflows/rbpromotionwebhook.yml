@@ -20,12 +20,6 @@ on:
       environment:
         required: true 
         type: string
-      targeturl:
-        required: true 
-        type: string
-      sourceurl:
-        required: true 
-        type: string
 
 permissions:
   actions: read # for detecting the Github Actions environment.
