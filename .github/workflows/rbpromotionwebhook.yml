@@ -53,7 +53,9 @@ jobs:
             oidc-audience: ps-jfrog-oidc
 
       - name: TestDR
-        run: jf rt ping --server-id=source-server
+        run: | 
+          jf c show
+          jf rt ping --server-id=setup-jfrog-cli-server
 
 
       # Use the specific setup-cli branch
