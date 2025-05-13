@@ -67,8 +67,12 @@ jobs:
 
       - name: Get release bundle details
         run: | 
-          curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -XGET "https://psblr.jfrog.io/lifecycle/api/v2/release_bundle/records/releasebundleforpromotion/1.0"
-          
+          response=$(curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" -X GET "https://psblr.jfrog.io/lifecycle/api/v2/release_bundle/records/releasebundleforpromotion/1.0")
+          echo "response=$response" >> $GITHUB_ENV  # Save the response to an environment variable
+
+      - name: Print Response
+        run: |
+          echo "Response: ${{ env.response }}"  # Print the output we captured
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
