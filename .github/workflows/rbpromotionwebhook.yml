@@ -68,7 +68,7 @@ jobs:
       - name: Get release bundle details
         run: | 
           
-          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -XGET "${JFROG_PLATFORM_URL}/lifecycle/api/v2/release_bundle/records/releasebundleforpromotion/1.0")
+          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -XGET "https://psblr.jfrog.io/lifecycle/api/v2/release_bundle/records/releasebundleforpromotion/1.0")
           echo "response=$response" >> $GITHUB_ENV 
           echo "Response: ${{ env.response }}"
 
