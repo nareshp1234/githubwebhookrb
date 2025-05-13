@@ -83,7 +83,7 @@ jobs:
 
 
       - name: Promote release bundle
-        run: jf rbp --input-repos="$response"  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
+        run: jf rbp --include-repos="${{ env.response }}"  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
 
 
 
