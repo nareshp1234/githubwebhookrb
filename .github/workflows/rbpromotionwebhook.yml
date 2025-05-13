@@ -37,6 +37,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Print URL
+        run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }}
+        
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
@@ -57,8 +61,7 @@ jobs:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
 
-      - name: Print URL
-        run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }}
+      
 
       - name: TestSource
         run: jf rt ping --server-id=setup-cli-target
