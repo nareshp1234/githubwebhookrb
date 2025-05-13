@@ -52,11 +52,11 @@ jobs:
             oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
 
-      - name: TestDR
+      - name: Get release bundle details
         run: | 
-          jf c show
-          jf rt ping --server-id=setup-jfrog-cli-server
-
+          response=$(jf rt curl -XGET "/lifecycle/api/v2/release_bundle/records/${{ inputs.release_bundle }}/${{ inputs.bundle_version }}")
+          echo "response=$response" >> $GITHUB_ENV 
+          echo "Response: ${{ env.response }}"
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
@@ -69,11 +69,6 @@ jobs:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
 
-      - name: show JF configurations
-        run: jf c show
-
-      - name: TestDR
-        run: jf rt ping --server-id=target-server
 
       - name: Promote release bundle
         run: jf rbp ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
