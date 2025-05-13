@@ -75,7 +75,7 @@ jobs:
 
       - name: Print Response
         run: |
-          echo "Response: ${{ env.response }}"  # Print the output we captured
+          echo "Response: $response"  # Print the output we captured
 
       - name: list repositories
         run: | 
