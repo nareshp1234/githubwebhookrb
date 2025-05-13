@@ -47,24 +47,14 @@ jobs:
         id: setup-cli-target
         env:
           JF_URL: https://${{ inputs.sourceurl }}/
-          SETUP_JFROG_CLI_SERVER_IDS: target-server
+          SETUP_JFROG_CLI_SERVER_IDS: source-server
         with:
             oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
 
-      
+      - name: TestDR
+        run: jf rt ping --server-id=source-server
 
-      - name: show JF configurations
-        run: |
-          jf c rm setup-jfrog-cli-server
-          jf c show
-
-      
-
-      - name: TestSource
-        run: jf rt ping --server-id=target-server
-
-       
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
@@ -72,7 +62,7 @@ jobs:
         id: setup-cli-source
         env:
           JF_URL: https://${{ inputs.targeturl }}/
-          SETUP_JFROG_CLI_SERVER_IDS: source-server
+          SETUP_JFROG_CLI_SERVER_IDS: target-server
         with:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
