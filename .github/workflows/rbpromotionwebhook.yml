@@ -51,6 +51,18 @@ jobs:
             oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
 
+      
+
+      - name: show JF configurations
+        run: jf c show
+
+      
+
+      - name: TestSource
+        run: jf rt ping 
+
+       
+
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
@@ -64,13 +76,8 @@ jobs:
       - name: show JF configurations
         run: jf c show
 
-      
-
-      - name: TestSource
-        run: jf rt ping --server-id=setup-cli-target
-
       - name: TestDR
-        run: jf rt ping --server-id=setup-cli-source
+        run: jf rt ping
 
       - name: Promote release bundle
         run: jf rbp ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
