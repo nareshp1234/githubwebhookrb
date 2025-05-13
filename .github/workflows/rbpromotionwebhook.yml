@@ -77,6 +77,10 @@ jobs:
         run: |
           echo "Response: ${{ env.response }}"  # Print the output we captured
 
+      - name: list repositories
+        run: | 
+          echo "${{ env.response }}" | jq -r '.Response.artifacts[].source_repository_key' | sort -u
+
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
