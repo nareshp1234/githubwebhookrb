@@ -40,23 +40,13 @@ jobs:
 
       - name: Print URL
         run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }}
-        
-      # Use the specific setup-cli branch
-      - name: Setup JFrog CLI
-        uses: jfrog/setup-jfrog-cli@v4
-        id: setup-cli-target
-        env:
-          JF_URL: https://${{ inputs.sourceurl }}/
-          SETUP_JFROG_CLI_SERVER_IDS: source-server
-        with:
-            oidc-provider-name: nareshgithub
-            oidc-audience: ps-jfrog-oidc
 
       - name: Get id token
         run: |
             ID_TOKEN=$(curl -sLS -H "User-Agent: actions/oidc-client" -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=ps-jfrog-oidc" | jq .value | tr -d '"')
             echo "ID_TOKEN=${ID_TOKEN}" >> $GITHUB_ENV
+            
       - name: Exchange token with access
         env:
             ID_TOKEN: ${{env.ID_TOKEN}}
@@ -72,7 +62,6 @@ jobs:
           echo "$response" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           
-
       - name: Print Response
         run: |
           echo "Response: $response"  # Print the output we captured
@@ -94,7 +83,7 @@ jobs:
 
 
       - name: Promote release bundle
-        run: jf rbp ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
+        run: jf rbp --input-repos="$response"  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
 
 
 
