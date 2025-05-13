@@ -41,7 +41,7 @@ jobs:
         env:
           JF_URL: https://${{ inputs.url }}/
         with:
-            oidc-provider-name: naresh-custom
+            oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
 
       - name: Promote release bundle
