@@ -46,7 +46,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v4
         id: setup-cli-target
         env:
-          JF_URL: https://${{ inputs.targeturl }}/
+          JF_URL: https://${{ inputs.sourceurl }}/
         with:
             oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
@@ -56,7 +56,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v4
         id: setup-cli-source
         env:
-          JF_URL: https://${{ inputs.sourceurl }}/
+          JF_URL: https://${{ inputs.targeturl }}/
         with:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
