@@ -66,9 +66,18 @@ jobs:
         run: |
           echo "Response: $response"  # Print the output we captured
 
-      - name: list repositories
+      - name: Get rb milli seconds
         run: | 
-          echo "$response" | jq -r '.artifacts[].source_repository_key' | sort -u
+          rbmilliseconds= $(echo "$response" | jq -r '.created_millis')
+          # Save the milli seconds to an environment variable
+          echo "rbmilliseconds=$rbmilliseconds" >> $GITHUB_ENV
+
+      - name: Get release bundle details promotion details
+        run: | 
+          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "https://psblr.jfrog.io/lifecycle/api/v2/promotion/records/releasebundleforpromotion/1.0/${{ env.rbmilliseconds }}")
+          echo "response<<EOF" >> $GITHUB_ENV
+          echo "$response" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
