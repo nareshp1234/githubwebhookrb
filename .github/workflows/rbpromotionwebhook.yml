@@ -74,10 +74,14 @@ jobs:
 
       - name: Get release bundle details promotion details
         run: | 
-          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "https://psblr.jfrog.io/lifecycle/api/v2/promotion/records/releasebundleforpromotion/1.0/${{ env.rbmilliseconds }}")
-          echo "response<<EOF" >> $GITHUB_ENV
-          echo "$response" >> $GITHUB_ENV
+          promotionresponse=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "https://psblr.jfrog.io/lifecycle/api/v2/promotion/records/releasebundleforpromotion/1.0/${{ env.rbmilliseconds }}")
+          echo "promotionresponse<<EOF" >> $GITHUB_ENV
+          echo "$promotionresponse" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: RB Promotion Response
+        run: |
+          echo "promotionresponse: $promotionresponse"  # Print the output we captured
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
