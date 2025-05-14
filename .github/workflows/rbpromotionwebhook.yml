@@ -70,7 +70,7 @@ jobs:
         run: | 
           rbmilliseconds= $(echo "$response" | jq -r '.created_millis')
           # Save the milli seconds to an environment variable
-          echo "rbmilliseconds=$rbmilliseconds" >> $GITHUB_ENV
+          echo "rbmilliseconds=\"$rbmilliseconds\"" >> $GITHUB_ENV
 
       - name: Get release bundle details promotion details
         run: | 
