@@ -82,6 +82,8 @@ jobs:
       - name: RB Promotion Response
         run: |
           echo "promotionresponse: $promotionresponse"  # Print the output we captured
+          listofrepos=$(echo "$promotionresponse" | jq -r '.artifacts[].path | split("/")[0]' | sort -u | paste -sd, -)
+          echo "listofrepos=\"$listofrepos\"" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
@@ -96,7 +98,7 @@ jobs:
 
 
       - name: Promote release bundle
-        run: jf rbp --include-repos="${{ env.response }}"  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
+        run: jf rbp --include-repos=${{ env.listofrepos }}  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
 
 
 
