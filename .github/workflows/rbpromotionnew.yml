@@ -59,26 +59,37 @@ jobs:
       - name: Get release bundle details
         run: | 
           response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "${{ inputs.sourceurl }}/lifecycle/api/v2/audit/${{ inputs.release_bundle}}/${{ inputs.bundle_version}}")
+          # Check if the response is empty or not valid JSON
+          if [ -z "$response" ] || ! echo "$response" | jq -e . > /dev/null; then
+            echo "::warning::API response is empty or not valid JSON. Setting outputs to N/A."
+            echo "event_status=N/A" >> $GITHUB_OUTPUT
+            echo "promotion_created_millis=N/A" >> $GITHUB_OUTPUT
+            echo "included_repository_keys=[]" >> $GITHUB_OUTPUT # Default to empty JSON array
+            echo "excluded_repository_keys=[]" >> $GITHUB_OUTPUT # Default to empty JSON array
+            exit 0 # Exit this run step cleanly, future steps will use N/A
+          fi
+
+          # Save the full response to a file (optional, but good for debugging)
+          echo "$response" > response.json
+          
           # Use a unique delimiter for multi-line outputs
-          EOF_DELIMITER=$(uuidgen) # Generate a unique delimiter to avoid conflicts
-          
-          # Extract simple string values first
-          EVENT_STATUS=$(echo "$response" | jq -r '.audits[0].event_status')
-          PROMOTION_CREATED_MILLIS=$(echo "$response" | jq -r '.audits[0].context.promotion_created_millis // "N/A"')
+          EOF_DELIMITER=$(uuidgen)
 
-          # For JSON arrays (which are multi-line), use the special delimiter syntax
-          # Pass the full JSON string of the array, and wrap it with the delimiter
-          
-          # Capture the full JSON string for included_repository_keys
-          INCLUDED_REPOS_JSON=$(echo "$response" | jq -c '.audits[0].context.included_repository_keys') # -c for compact output, good for single line
-          
-          # Capture the full JSON string for excluded_repository_keys
-          EXCLUDED_REPOS_JSON=$(echo "$response" | jq -c '.audits[0].context.excluded_repository_keys')
+          # Extract simple string values directly. Using `?` with `.` allows for optional fields
+          EVENT_STATUS=$(echo "$response" | jq -r '.audits[0]?.event_status // "N/A"')
+          # Note: promotion_created_millis is inside 'context', which might be missing.
+          # Use `?` for optional object access, `//` for default value
+          PROMOTION_CREATED_MILLIS=$(echo "$response" | jq -r '.audits[0]?.context?.promotion_created_millis // "N/A"')
 
+          # For JSON arrays, ensure `jq` always outputs a valid JSON array string
+          # Use `// []` to default to an empty JSON array if the path doesn't exist
+          INCLUDED_REPOS_JSON=$(echo "$response" | jq -c '.audits[0]?.context?.included_repository_keys // []')
+          EXCLUDED_REPOS_JSON=$(echo "$response" | jq -c '.audits[0]?.context?.excluded_repository_keys // []')
+
+          # Output these values so they can be used in subsequent steps
           echo "event_status=$EVENT_STATUS" >> $GITHUB_OUTPUT
           echo "promotion_created_millis=$PROMOTION_CREATED_MILLIS" >> $GITHUB_OUTPUT
           
-          # For multi-line or JSON outputs, use the delimiter syntax:
           echo "included_repository_keys<<$EOF_DELIMITER" >> $GITHUB_OUTPUT
           echo "$INCLUDED_REPOS_JSON" >> $GITHUB_OUTPUT
           echo "$EOF_DELIMITER" >> $GITHUB_OUTPUT
@@ -86,18 +97,25 @@ jobs:
           echo "excluded_repository_keys<<$EOF_DELIMITER" >> $GITHUB_OUTPUT
           echo "$EXCLUDED_REPOS_JSON" >> $GITHUB_OUTPUT
           echo "$EOF_DELIMITER" >> $GITHUB_OUTPUT
-        
+
       - name: Print Extracted Response Details
+        # This step should now work robustly because the outputs are guaranteed
+        # to be valid JSON arrays (even if empty) or "N/A" strings.
+        # Use fromJSON only on variables expected to be JSON.
         run: |
           echo "Event Status: ${{ steps.get_details.outputs.event_status }}"
           echo "Promotion Created Millis: ${{ steps.get_details.outputs.promotion_created_millis }}"
           echo "Included Repository Keys (JSON): ${{ steps.get_details.outputs.included_repository_keys }}"
           echo "Excluded Repository Keys (JSON): ${{ steps.get_details.outputs.excluded_repository_keys }}"
           
-          # If you want to process the JSON outputs in a later step:
-          echo "Example: First included repo key (parsed from JSON output)"
-          # Note: fromJSON is an expression, so it's outside the shell run block
-          echo "${{ fromJSON(steps.get_details.outputs.included_repository_keys)[0] }}"
+          # Example: Accessing the first element of the included_repository_keys array
+          # Only attempt to fromJSON if it's not "N/A" and looks like JSON.
+          # A more advanced check could be implemented if necessary.
+          if [ "${{ steps.get_details.outputs.included_repository_keys }}" != "[]" ]; then
+            echo "First included repo: ${{ fromJSON(steps.get_details.outputs.included_repository_keys)[0] }}"
+          else
+            echo "No included repo keys found."
+          fi
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
