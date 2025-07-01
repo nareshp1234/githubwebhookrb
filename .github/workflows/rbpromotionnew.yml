@@ -58,7 +58,7 @@ jobs:
 
       - name: Get release bundle details
         run: | 
-          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://3.111.171.250:8082/lifecycle/api/v2/promotion/records/{{ inputs.release_bundle}}/{{ inputs.bundle_version}}")
+          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://3.111.171.250:8082/lifecycle/api/v2/audit/${{ inputs.release_bundle}}/${{ inputs.bundle_version}}")
           echo "response<<EOF" >> $GITHUB_ENV
           echo "$response" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -66,25 +66,6 @@ jobs:
       - name: Print Response
         run: |
           echo "Response: $response"  # Print the output we captured
-
-      - name: Get rb milli seconds
-        run: | 
-          rbmilliseconds=$(echo "$response" | jq -r .promotions[0].created_millis)
-          # Save the milli seconds to an environment variable
-          echo "rbmilliseconds=\"$rbmilliseconds\"" >> $GITHUB_ENV
-
-      - name: Get release bundle details promotion details
-        run: | 
-          promotionresponse=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://3.111.171.250:8082/lifecycle/api/v2/promotion/records/{{ inputs.release_bundle}}/{{ inputs.bundle_version}}/${{ env.rbmilliseconds }}")
-          echo "promotionresponse<<EOF" >> $GITHUB_ENV
-          echo "$promotionresponse" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: RB Promotion Response
-        run: |
-          echo "promotionresponse: $promotionresponse"  # Print the output we captured
-          listofrepos=$(echo "$promotionresponse" | jq -r '.artifacts[].path | split("/")[0]' | sort -u | paste -sd, -)
-          echo "listofrepos=\"$listofrepos\"" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
