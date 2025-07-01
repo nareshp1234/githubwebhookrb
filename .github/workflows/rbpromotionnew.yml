@@ -57,7 +57,7 @@ jobs:
 
       - name: Get release bundle details
         run: | 
-          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://172.18.107.154:8082/lifecycle/api/v2/promotion/records/releasebundleforpromotion/1.0")
+          response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://172.18.107.154:8082/lifecycle/api/v2/promotion/records/{{ inputs.release_bundle}}/{{ inputs.bundle_version}}")
           echo "response<<EOF" >> $GITHUB_ENV
           echo "$response" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -74,7 +74,7 @@ jobs:
 
       - name: Get release bundle details promotion details
         run: | 
-          promotionresponse=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "https://psblr.jfrog.io/lifecycle/api/v2/promotion/records/releasebundleforpromotion/1.0/${{ env.rbmilliseconds }}")
+          promotionresponse=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "http://172.18.107.154:8082/lifecycle/api/v2/promotion/records/{{ inputs.release_bundle}}/{{ inputs.bundle_version}}/${{ env.rbmilliseconds }}")
           echo "promotionresponse<<EOF" >> $GITHUB_ENV
           echo "$promotionresponse" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -97,5 +97,5 @@ jobs:
             oidc-audience: ps-jfrog-oidc
 
 
-      - name: Promote release bundle
-        run: jf rbp --include-repos=${{ env.listofrepos }}  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
+       # - name: Promote release bundle
+       # run: jf rbp --include-repos=${{ env.listofrepos }}  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
