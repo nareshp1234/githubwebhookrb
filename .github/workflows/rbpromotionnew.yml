@@ -67,9 +67,13 @@ jobs:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
 
+      
+
 
       - name: Run Release Bundle Promotion Script
-        run: python promote_release_bundle.py
+        run: | 
+          chmod +x $GITHUB_WORKSPACE/promote_release_bundle.py
+          python $GITHUB_WORKSPACE/promote_release_bundle.py
         env:
           ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }} # Access token for source JPD audit API
           SOURCE_URL: ${{ inputs.sourceurl }}
