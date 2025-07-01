@@ -73,8 +73,7 @@ jobs:
 
 
       - name: Run Release Bundle Promotion Script
-        run: | 
-          ls -al $GITHUB_WORKSPACE
+        run: |
           chmod +x $GITHUB_WORKSPACE/promote_release_bundle.py
           python $GITHUB_WORKSPACE/promote_release_bundle.py
         env:
