@@ -135,6 +135,9 @@ jobs:
             echo "No included repo keys found in the first audit item."
           fi
 
+          INCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
+          EXCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.excluded_repository_keys }}" | jq -r 'join(",")')
+
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
@@ -147,5 +150,5 @@ jobs:
             oidc-audience: ps-jfrog-oidc
 
 
-       # - name: Promote release bundle
-       # run: jf rbp --include-repos=${{ env.listofrepos }}  ${{ inputs.release_bundle }} ${{ inputs.bundle_version }} ${{ inputs.environment }}
+      - name: Promote release bundle
+        run: jf rbp --include-repos=$INCLUDE_REPOS_LIST  --exclude-repos=$EXCLUDE_REPOS_LIST ${{ inputs.release_bundle }}${{ inputs.bundle_version }} ${{ inputs.environment }}
