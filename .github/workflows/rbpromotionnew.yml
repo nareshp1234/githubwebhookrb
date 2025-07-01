@@ -56,97 +56,6 @@ jobs:
             ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ inputs.sourceurl }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
             echo "ACCESS_TOKEN=${ACCESS_TOKEN}" >> $GITHUB_ENV
 
-      - name: Get release bundle details
-        id: get_details # Add an ID to this step to reference its outputs
-        run: |
-          # Fetch the response
-          # Add --fail-with-body to curl to show HTTP errors even if not 2xx
-          # Add --silent so curl only outputs data, not progress bars
-          response=$(curl --silent --fail-with-body -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "${{ inputs.sourceurl }}/lifecycle/api/v2/audit/${{ inputs.release_bundle}}/${{ inputs.bundle_version}}")
-          
-          # Check if the curl command itself returned an error (empty response or HTTP error)
-          if [ $? -ne 0 ] || [ -z "$response" ]; then
-            echo "::error::Curl command failed or returned empty response."
-            echo "::warning::API response is empty or failed. Setting outputs to N/A."
-            echo "event_status=N/A" >> $GITHUB_OUTPUT
-            echo "promotion_created_millis=N/A" >> $GITHUB_OUTPUT
-            echo "included_repository_keys=[]" >> $GITHUB_OUTPUT # Default to empty JSON array
-            echo "excluded_repository_keys=[]" >> $GITHUB_OUTPUT # Default to empty JSON array
-            exit 1 # Indicate failure of this step
-          fi
-
-          # Attempt to parse the response as JSON
-          # Use a temporary file for safety when piping potentially large responses
-          echo "$response" > /tmp/response.json
-          
-          if ! jq -e . /tmp/response.json > /dev/null; then
-            echo "::error::API response is not valid JSON."
-            echo "::debug::Response content:"
-            cat /tmp/response.json # Print the invalid response for debugging
-            echo "::warning::API response is invalid JSON. Setting outputs to N/A."
-            echo "event_status=N/A" >> $GITHUB_OUTPUT
-            echo "promotion_created_millis=N/A" >> $GITHUB_OUTPUT
-            echo "included_repository_keys=[]" >> $GITHUB_OUTPUT
-            echo "excluded_repository_keys=[]" >> $GITHUB_OUTPUT
-            exit 1 # Indicate failure of this step
-          fi
-
-          # Now that we're sure it's valid JSON, extract values
-          # Always process from the file /tmp/response.json
-          
-          # Use a unique delimiter for multi-line outputs
-          EOF_DELIMITER=$(uuidgen)
-          
-          # Extract simple string values directly.
-          # Use '.audits[0]?.event_status // "N/A"' for robustness against missing fields.
-          EVENT_STATUS=$(jq -r '.audits[0]?.event_status // "N/A"' /tmp/response.json)
-          PROMOTION_CREATED_MILLIS=$(jq -r '.audits[0]?.context?.promotion_created_millis // "N/A"' /tmp/response.json)
-
-          # For JSON arrays, ensure `jq` always outputs a valid JSON array string
-          INCLUDED_REPOS_JSON=$(jq -c '.audits[0]?.context?.included_repository_keys // []' /tmp/response.json)
-          EXCLUDED_REPOS_JSON=$(jq -c '.audits[0]?.context?.excluded_repository_keys // []' /tmp/response.json)
-          
-          # Output these values
-          echo "event_status=$EVENT_STATUS" >> $GITHUB_OUTPUT
-          echo "promotion_created_millis=$PROMOTION_CREATED_MILLIS" >> $GITHUB_OUTPUT
-          
-          echo "included_repository_keys<<$EOF_DELIMITER" >> $GITHUB_OUTPUT
-          echo "$INCLUDED_REPOS_JSON" >> $GITHUB_OUTPUT
-          echo "$EOF_DELIMITER" >> $GITHUB_OUTPUT
-          
-          echo "excluded_repository_keys<<$EOF_DELIMITER" >> $GITHUB_OUTPUT
-          echo "$EXCLUDED_REPOS_JSON" >> $GITHUB_OUTPUT
-          echo "$EOF_DELIMITER" >> $GITHUB_OUTPUT
-
-      - name: Print Extracted Response Details
-        run: |
-          echo "Event Status: ${{ steps.get_details.outputs.event_status }}"
-          echo "Promotion Created Millis: ${{ steps.get_details.outputs.promotion_created_millis }}"
-          INCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
-          
-          # Conditionally build the parameter string for --include-repos
-          INCLUDE_REPOS_PARAM=""
-          if [ -n "$INCLUDE_REPOS_LIST" ] && [ "$INCLUDE_REPOS_LIST" != "null" ]; then
-            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDE_REPOS_LIST"
-          fi
-          # ----------------------------------------------
-
-          # --- Prepare the excluded repositories list ---
-          # Directly use the output variable from the 'get_details' step.
-          # It's already a valid JSON string (e.g., '[]') from the previous step.
-          EXCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.excluded_repository_keys }}" | jq -r 'join(",")')
-          
-          # Conditionally build the parameter string for --exclude-repos
-          EXCLUDE_REPOS_PARAM=""
-          if [ -n "$EXCLUDE_REPOS_LIST" ] && [ "$EXCLUDE_REPOS_LIST" != "null" ]; then
-            EXCLUDE_REPOS_PARAM="--exclude-repos=$EXCLUDE_REPOS_LIST"
-          fi
-          # ----------------------------------------------
-
-          echo "Promoting release bundle ${{ inputs.release_bundle }}/${{ inputs.bundle_version }} to environment: ${{ inputs.environment }}"
-          echo "Included repositories parameter: $INCLUDE_REPOS_PARAM"
-          echo "Excluded repositories parameter: $EXCLUDE_REPOS_PARAM"
-
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
@@ -159,5 +68,12 @@ jobs:
             oidc-audience: ps-jfrog-oidc
 
 
-      - name: Promote release bundle
-        run: jf rbp --include-repos=$INCLUDE_REPOS_PARAM  --exclude-repos=$EXCLUDE_REPOS_PARAM ${{ inputs.release_bundle }}${{ inputs.bundle_version }} ${{ inputs.environment }}
+      - name: Run Release Bundle Promotion Script
+        run: python promote_release_bundle.py
+        env:
+          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }} # Access token for source JPD audit API
+          SOURCE_URL: ${{ inputs.sourceurl }}
+          TARGET_URL: ${{ inputs.targeturl }}
+          RELEASE_BUNDLE: ${{ inputs.release_bundle }}
+          BUNDLE_VERSION: ${{ inputs.bundle_version }}
+          ENVIRONMENT: ${{ inputs.environment }}
