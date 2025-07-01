@@ -136,7 +136,27 @@ jobs:
           fi
 
           INCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
+          
+          # Conditionally build the parameter string for --include-repos
+          INCLUDE_REPOS_PARAM=""
+          if [ -n "$INCLUDE_REPOS_LIST" ] && [ "$INCLUDE_REPOS_LIST" != "null" ]; then
+            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDE_REPOS_LIST"
+          fi
+          # ----------------------------------------------
+
+          # --- Prepare the excluded repositories list ---
           EXCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.excluded_repository_keys }}" | jq -r 'join(",")')
+          
+          # Conditionally build the parameter string for --exclude-repos
+          EXCLUDE_REPOS_PARAM=""
+          if [ -n "$EXCLUDE_REPOS_LIST" ] && [ "$EXCLUDE_REPOS_LIST" != "null" ]; then
+            EXCLUDE_REPOS_PARAM="--exclude-repos=$EXCLUDE_REPOS_LIST"
+          fi
+          # ----------------------------------------------
+
+          echo "Promoting release bundle ${{ inputs.release_bundle }}/${{ inputs.bundle_version }} to environment: ${{ inputs.environment }}"
+          echo "Included repositories parameter: $INCLUDE_REPOS_PARAM"
+          echo "Excluded repositories parameter: $EXCLUDE_REPOS_PARAM"
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
@@ -151,4 +171,4 @@ jobs:
 
 
       - name: Promote release bundle
-        run: jf rbp --include-repos=$INCLUDE_REPOS_LIST  --exclude-repos=$EXCLUDE_REPOS_LIST ${{ inputs.release_bundle }}${{ inputs.bundle_version }} ${{ inputs.environment }}
+        run: jf rbp --include-repos=$INCLUDE_REPOS_PARAM  --exclude-repos=$EXCLUDE_REPOS_PARAM ${{ inputs.release_bundle }}${{ inputs.bundle_version }} ${{ inputs.environment }}
