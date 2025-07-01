@@ -37,6 +37,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Print URL
         run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }} and ${{ inputs.environment }}
