@@ -59,13 +59,26 @@ jobs:
       - name: Get release bundle details
         run: | 
           response=$(curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "${{ inputs.sourceurl }}/lifecycle/api/v2/audit/${{ inputs.release_bundle}}/${{ inputs.bundle_version}}")
-          echo "response<<EOF" >> $GITHUB_ENV
-          echo "$response" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          
-      - name: Print Response
+          echo "$response" > response.json # Save the full response to a file
+
+          # Extract values using jq from the file
+          EVENT_STATUS=$(jq -r '.audits[0].event_status' response.json)
+          PROMOTION_CREATED_MILLIS=$(jq -r '.audits[0].context.promotion_created_millis // "N/A"' response.json) # Use // "N/A" for optional fields
+          INCLUDED_REPOS=$(jq -r '.audits[0].context.included_repository_keys' response.json)
+          EXCLUDED_REPOS=$(jq -r '.audits[0].context.excluded_repository_keys' response.json)
+
+          # Output these values so they can be used in subsequent steps
+          echo "event_status=$EVENT_STATUS" >> $GITHUB_OUTPUT
+          echo "promotion_created_millis=$PROMOTION_CREATED_MILLIS" >> $GITHUB_OUTPUT
+          echo "included_repository_keys=$INCLUDED_REPOS" >> $GITHUB_OUTPUT
+          echo "excluded_repository_keys=$EXCLUDED_REPOS" >> $GITHUB_OUTPUT
+
+      - name: Print Extracted Response Details
         run: |
-          echo "Response: $response"  # Print the output we captured
+          echo "Event Status: ${{ steps.get_details.outputs.event_status }}"
+          echo "Promotion Created Millis: ${{ steps.get_details.outputs.promotion_created_millis }}"
+          echo "Included Repository Keys: ${{ steps.get_details.outputs.included_repository_keys }}"
+          echo "Excluded Repository Keys: ${{ steps.get_details.outputs.excluded_repository_keys }}"
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
