@@ -100,8 +100,7 @@ def main():
         "jf", "rbp",
         release_bundle_name,
         bundle_version,
-        environment, # This is the target environment name
-        "--target-server=target-server"
+        environment # This is the target environment name   
     ]
 
     # Add optional parameters if they exist
