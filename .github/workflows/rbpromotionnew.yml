@@ -135,16 +135,17 @@ jobs:
             echo "No included repo keys found in the first audit item."
           fi
 
-          INCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
+          INCLUDED_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
           
           # Conditionally build the parameter string for --include-repos
           INCLUDE_REPOS_PARAM=""
-          if [ -n "$INCLUDE_REPOS_LIST" ] && [ "$INCLUDE_REPOS_LIST" != "null" ]; then
-            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDE_REPOS_LIST"
+          if [ -n "$INCLUDED_REPOS_LIST" ] && [ "$INCLUDED_REPOS_LIST" != "null" ]; then
+            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDED_REPOS_LIST"
           fi
           # ----------------------------------------------
 
           # --- Prepare the excluded repositories list ---
+          # Directly use the output variable from the previous step. It's already a JSON string.
           EXCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.excluded_repository_keys }}" | jq -r 'join(",")')
           
           # Conditionally build the parameter string for --exclude-repos
