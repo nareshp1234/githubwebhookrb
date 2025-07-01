@@ -122,30 +122,18 @@ jobs:
         run: |
           echo "Event Status: ${{ steps.get_details.outputs.event_status }}"
           echo "Promotion Created Millis: ${{ steps.get_details.outputs.promotion_created_millis }}"
-          echo "Included Repository Keys (JSON): ${{ steps.get_details.outputs.included_repository_keys }}"
-          echo "Excluded Repository Keys (JSON): ${{ steps.get_details.outputs.excluded_repository_keys }}"
-          
-          # Now, this line should be robust because included_repository_keys is guaranteed to be a valid JSON array string
-          # even if empty ("[]")
-          # Accessing [0] on an empty array in fromJSON() context does not cause JToken error, but results in null
-          # So, add a check if you truly expect a value
-          if [ "${{ steps.get_details.outputs.included_repository_keys }}" != "[]" ]; then
-            echo "First included repo: ${{ fromJSON(steps.get_details.outputs.included_repository_keys)[0] }}"
-          else
-            echo "No included repo keys found in the first audit item."
-          fi
-
-          INCLUDED_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
+          INCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.included_repository_keys }}" | jq -r 'join(",")')
           
           # Conditionally build the parameter string for --include-repos
           INCLUDE_REPOS_PARAM=""
-          if [ -n "$INCLUDED_REPOS_LIST" ] && [ "$INCLUDED_REPOS_LIST" != "null" ]; then
-            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDED_REPOS_LIST"
+          if [ -n "$INCLUDE_REPOS_LIST" ] && [ "$INCLUDE_REPOS_LIST" != "null" ]; then
+            INCLUDE_REPOS_PARAM="--include-repos=$INCLUDE_REPOS_LIST"
           fi
           # ----------------------------------------------
 
           # --- Prepare the excluded repositories list ---
-          # Directly use the output variable from the previous step. It's already a JSON string.
+          # Directly use the output variable from the 'get_details' step.
+          # It's already a valid JSON string (e.g., '[]') from the previous step.
           EXCLUDE_REPOS_LIST=$(echo "${{ steps.get_details.outputs.excluded_repository_keys }}" | jq -r 'join(",")')
           
           # Conditionally build the parameter string for --exclude-repos
