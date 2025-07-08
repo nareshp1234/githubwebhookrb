@@ -36,6 +36,38 @@ def get_release_bundle_details(source_url, access_token, release_bundle, bundle_
             print(f"::error::Response body: {response.text}")
         return None
 
+def update_release_bundle_milliseconds(target_url, access_token, release_bundle, bundle_version,promotion_created_millis):
+    """
+    Updates release bundle with correct timestamp
+    Returns parsed JSON data or None on failure.
+    """
+    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.get(api_url, headers=headers, timeout=30)
+        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        
+        data = response.json()
+        return data
+    except requests.exceptions.Timeout:
+        print(f"::error::API request timed out to {api_url}")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"::error::API request failed to {api_url}: {e}")
+        if response is not None:
+            print(f"::error::Response status code: {response.status_code}")
+            print(f"::error::Response body: {response.text}")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"::error::Failed to decode JSON response from {api_url}: {e}")
+        if response is not None:
+            print(f"::error::Response body: {response.text}")
+        return None
+
 def main():
     # --- Input parameters from GitHub Actions ---
     # These typically come from environment variables or workflow inputs
@@ -128,6 +160,10 @@ def main():
         print("STDOUT:\n", e.stdout)
         print("STDERR:\n", e.stderr)
         sys.exit(e.returncode) # Exit with the command's exit code
+
+    # Update release bundle promotion timestamp
+    updaterbresponse = update_release_bundle_milliseconds(target_url, access_token, release_bundle_name, bundle_version,promotion_created_millis)
+    
 
 if __name__ == "__main__":
     main()
