@@ -41,7 +41,8 @@ def update_release_bundle_milliseconds(target_url, access_token, release_bundle,
     Updates release bundle with correct timestamp
     Returns parsed JSON data or None on failure.
     """
-    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}"
+    promotion_created_millis = promotion_created_millis + 1
+    api_url = f"{target_url}/lifecycle/api/v2/promotion/records/{release_bundle}/{bundle_version}?project=default&operation=copy&promotion_created_millis={promotion_created_millis}"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
