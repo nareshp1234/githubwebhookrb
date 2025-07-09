@@ -222,9 +222,7 @@ def main():
     if include_repos_param:
         jf_rbp_command.append(include_repos_param)
     if exclude_repos_param:
-        jf_rbp_command.append(exclude_repos_param)
-    
-    jf_rbp_command.append("--target-server=target-server") 
+        jf_rbp_command.append(exclude_repos_param) 
 
     print("\n--- Executing JFrog CLI Command ---")
     print(f"Command: {' '.join(jf_rbp_command)}")
