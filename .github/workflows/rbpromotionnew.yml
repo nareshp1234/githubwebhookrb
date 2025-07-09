@@ -53,9 +53,9 @@ jobs:
       - name: Exchange token with access
         env:
             ID_TOKEN: ${{env.ID_TOKEN}}
-            JFROG_PLATFORM_URL: https://${{ inputs.sourceurl }}/
+            JFROG_PLATFORM_URL: https://${{ inputs.sourceurl }}
         run: |
-            ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ inputs.sourceurl }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
+            ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
             echo "ACCESS_TOKEN=${ACCESS_TOKEN}" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
