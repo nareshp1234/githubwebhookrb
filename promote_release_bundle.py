@@ -158,7 +158,7 @@ def main():
     if audit_data is None:
         print("::error::Failed to retrieve audit details. Exiting.")
         sys.exit(1)
-
+    print(str(audit_data))
     # --- Extract required information from audit_data ---
     first_audit = audit_data.get("audits", [{}])[0]
     context = first_audit.get("context", {})
