@@ -50,24 +50,6 @@ def update_release_bundle_milliseconds(target_url, access_token, release_bundle,
         # For now, let's keep it as is if it's not a number, the API might reject it.
         pass
 
-    # Note: The API call here is a GET. Usually, updates are PUT/POST.
-    # If this is for fetching a specific promotion record, the project and milliseconds might be filters.
-    # If it's *updating* the milliseconds, the method should be PUT/POST with a request body.
-    # Based on the function name 'update_release_bundle_milliseconds',
-    # I'm assuming you intended a PUT/POST with a body, but the original code uses GET.
-    # I'll keep it as GET, but advise verifying the API spec.
-
-    # Example if it were a PUT/POST to update:
-    # api_url = f"{target_url}/lifecycle/api/v2/promotion/records/{release_bundle}/{bundle_version}"
-    # payload = {
-    #     "operation": "copy", # Or whatever operation
-    #     "project": project_key,
-    #     "promotion_created_millis": promotion_created_millis
-    # }
-    # response = requests.put(api_url, headers=headers, json=payload, timeout=30)
-
-    # Sticking to the original GET usage, assuming it triggers an update implicitly or fetches a record.
-    # The 'project' parameter needs to be correctly added.
     api_url = f"{target_url}/lifecycle/api/v2/promotion/records/{release_bundle}/{bundle_version}?project={project_key}&operation=copy&promotion_created_millis={promotion_created_millis}"
     
     headers = {
