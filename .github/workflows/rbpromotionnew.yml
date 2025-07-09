@@ -80,8 +80,6 @@ jobs:
             oidc-provider-name: naresh-dr
             oidc-audience: ps-jfrog-oidc
 
-      
-
 
       - name: Run Release Bundle Promotion Script
         run: |
