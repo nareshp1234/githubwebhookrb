@@ -4,12 +4,12 @@ import json
 import subprocess
 import sys
 
-def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version):
+def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version,project_key):
     """
     Fetches release bundle audit details from Artifactory.
     Returns parsed JSON data or None on failure.
     """
-    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}"
+    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}?project={project_key}"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
@@ -153,7 +153,7 @@ def main():
         print("::warning::Could not fetch release bundle names or 'release_bundles' list is empty. Using default project 'default'.")
 
     # --- 2. Get release bundle audit details ---
-    audit_data = get_release_bundle_details(source_url, access_token, release_bundle_name, bundle_version)
+    audit_data = get_release_bundle_details(source_url, access_token, release_bundle_name, bundle_version,project_key)
 
     if audit_data is None:
         print("::error::Failed to retrieve audit details. Exiting.")
