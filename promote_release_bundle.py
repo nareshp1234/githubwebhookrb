@@ -116,7 +116,8 @@ def get_release_bundle_names_with_project_keys(source_url, access_token):
 
 def main():
     # --- Input parameters from GitHub Actions Environment ---
-    access_token = os.getenv("ACCESS_TOKEN")
+    source_access_token = os.getenv("SOURCE_ACCESS_TOKEN")
+    target_access_token = os.getenv("TARGET_ACCESS_TOKEN")
     source_url = os.getenv("SOURCE_URL")
     target_url = os.getenv("TARGET_URL")
     release_bundle_name = os.getenv("RELEASE_BUNDLE")
@@ -124,9 +125,9 @@ def main():
     environment = os.getenv("ENVIRONMENT")
     input_repository_key = os.getenv("REPOSITORY_KEY") 
 
-    if not all([access_token, source_url, target_url, release_bundle_name, bundle_version, environment, input_repository_key]):
+    if not all([source_access_token,target_access_token, source_url, target_url, release_bundle_name, bundle_version, environment, input_repository_key]):
         print("::error::Missing one or more required environment variables.")
-        print("Ensure ACCESS_TOKEN, SOURCE_URL, TARGET_URL, RELEASE_BUNDLE, BUNDLE_VERSION, ENVIRONMENT, REPOSITORY_KEY are set.")
+        print("Ensure SOURCE_ACCESS_TOKEN,TARGET_ACCESS_TOKEN, SOURCE_URL, TARGET_URL, RELEASE_BUNDLE, BUNDLE_VERSION, ENVIRONMENT, REPOSITORY_KEY are set.")
         sys.exit(1)
 
     print(f"Processing bundle: {release_bundle_name}/{bundle_version}")
@@ -137,7 +138,7 @@ def main():
 
     # --- 1. Get Project Key based on repository_key ---
     project_key = "default" 
-    names_response = get_release_bundle_names_with_project_keys(source_url, access_token)
+    names_response = get_release_bundle_names_with_project_keys(source_url, source_access_token)
 
     if names_response and "release_bundles" in names_response:
         for rb_info in names_response["release_bundles"]:
@@ -151,7 +152,7 @@ def main():
         print("::warning::Could not fetch release bundle names or 'release_bundles' list is empty. Using default project 'default'.")
 
     # --- 2. Get release bundle audit details ---
-    audit_data = get_release_bundle_details(source_url, access_token, release_bundle_name, bundle_version, project_key)
+    audit_data = get_release_bundle_details(source_url, source_access_token, release_bundle_name, bundle_version, project_key)
 
     if audit_data is None:
         print("::error::Failed to retrieve audit details. Exiting.")
@@ -239,7 +240,7 @@ def main():
         sys.exit(e.returncode)
 
     # --- 3. Update release bundle promotion timestamp ---
-    updaterbresponse = update_release_bundle_milliseconds(target_url, access_token, release_bundle_name, bundle_version, promotion_created_millis, project_key)
+    updaterbresponse = update_release_bundle_milliseconds(target_url, target_access_token, release_bundle_name, bundle_version, promotion_created_millis, project_key)
     
     if updaterbresponse is None:
         print("::error::Failed to update release bundle promotion timestamp.")
