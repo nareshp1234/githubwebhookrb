@@ -4,7 +4,6 @@ import json
 import subprocess
 import sys
 
-# --- (Your existing get_release_bundle_details function - no changes needed) ---
 def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version, project_key):
     """
     Fetches release bundle audit details from Artifactory.
@@ -37,7 +36,6 @@ def get_release_bundle_details(source_url, access_token, release_bundle, bundle_
             print(f"::error::Response body: {response.text}")
         return None
 
-# --- (Your existing update_release_bundle_milliseconds function - no changes needed) ---
 def update_release_bundle_milliseconds(target_url, access_token, release_bundle, bundle_version, promotion_created_millis, project_key="default"):
     """
     Updates release bundle with correct timestamp for a specific promotion record.
@@ -158,7 +156,7 @@ def main():
         print("::error::Failed to retrieve audit details. Exiting.")
         sys.exit(1)
 
-    print(f"::debug::Raw audit_data response: {json.dumps(audit_data)}") # For debugging, print raw response
+    print(f"::debug::Raw audit_data response: {json.dumps(audit_data)}") 
 
     # --- Find the first audit event where "event_status": "COMPLETED" and "subject_type": "PROMOTION" ---
     # Skip the very first event if it's "EXTERNAL_EVIDENCE".
@@ -187,8 +185,8 @@ def main():
     # --- Extract required information from the PROMOTION audit event ---
     context = promotion_audit_event.get("context", {}) 
 
-    event_status = promotion_audit_event.get("event_status", "N/A") 
-    promotion_created_millis = context.get("promotion_created_millis", "N/A")
+    event_status = promotion_audit_event.get("event_status", "") 
+    promotion_created_millis = context.get("promotion_created_millis", "0")
     included_repository_keys = context.get("included_repository_keys", [])
     excluded_repository_keys = context.get("excluded_repository_keys", [])
 
