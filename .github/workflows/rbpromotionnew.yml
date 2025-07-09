@@ -78,8 +78,8 @@ jobs:
           python $GITHUB_WORKSPACE/promote_release_bundle.py
         env:
           ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }} # Access token for source JPD audit API
-          SOURCE_URL: ${{ inputs.sourceurl }}
-          TARGET_URL: ${{ inputs.targeturl }}
+          SOURCE_URL: https://${{ inputs.sourceurl }}
+          TARGET_URL: https://${{ inputs.targeturl }}
           RELEASE_BUNDLE: ${{ inputs.release_bundle }}
           BUNDLE_VERSION: ${{ inputs.bundle_version }}
           ENVIRONMENT: ${{ inputs.environment }}
