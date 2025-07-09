@@ -193,8 +193,7 @@ def main():
         release_bundle_name,
         bundle_version,
         environment, # This is the target environment name
-        f"--project={project_key}", # Add the --project flag here
-        "--target-server=target-server"
+        f"--project={project_key}"
     ]
 
     if include_repos_param:
