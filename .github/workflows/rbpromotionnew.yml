@@ -63,7 +63,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v4
         id: setup-cli-source
         env:
-          JF_URL: ${{ inputs.targeturl }}/
+          JF_URL: https://${{ inputs.targeturl }}
           SETUP_JFROG_CLI_SERVER_IDS: target-server
         with:
             oidc-provider-name: naresh-dr
