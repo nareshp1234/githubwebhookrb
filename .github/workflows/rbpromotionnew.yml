@@ -26,6 +26,9 @@ on:
       targeturl:
         required: true 
         type: string
+      projectname: 
+        required: true 
+        type: string
 
 permissions:
   actions: read # for detecting the Github Actions environment.
@@ -41,7 +44,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Print URL
-        run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }} and ${{ inputs.environment }}
+        run: echo  The path is ${{ inputs.sourceurl }}  and target url is ${{ inputs.targeturl }} and  env is ${{ inputs.environment }} and project is ${{ inputs.projectname }}
 
       - name: Get id token
         run: |
