@@ -4,7 +4,8 @@ import json
 import subprocess
 import sys
 
-def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version,project_key):
+# --- (Your existing get_release_bundle_details function - no changes needed) ---
+def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version, project_key):
     """
     Fetches release bundle audit details from Artifactory.
     Returns parsed JSON data or None on failure.
@@ -36,18 +37,16 @@ def get_release_bundle_details(source_url, access_token, release_bundle, bundle_
             print(f"::error::Response body: {response.text}")
         return None
 
+# --- (Your existing update_release_bundle_milliseconds function - no changes needed) ---
 def update_release_bundle_milliseconds(target_url, access_token, release_bundle, bundle_version, promotion_created_millis, project_key="default"):
     """
     Updates release bundle with correct timestamp for a specific promotion record.
     Returns parsed JSON data or None on failure.
     """
-    # Increment the timestamp as requested, but ensure it's treated as a number
     try:
         promotion_created_millis = int(promotion_created_millis) + 1
     except (ValueError, TypeError):
         print(f"::warning::promotion_created_millis '{promotion_created_millis}' is not a valid number. Cannot increment.")
-        # Decide if you want to exit or proceed with original value or a default
-        # For now, let's keep it as is if it's not a number, the API might reject it.
         pass
 
     api_url = f"{target_url}/lifecycle/api/v2/promotion/records/{release_bundle}/{bundle_version}?project={project_key}&operation=copy&promotion_created_millis={promotion_created_millis}"
@@ -61,7 +60,7 @@ def update_release_bundle_milliseconds(target_url, access_token, release_bundle,
 
     try:
         response = requests.get(api_url, headers=headers, timeout=30)
-        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         
         data = response.json()
         return data
@@ -80,6 +79,7 @@ def update_release_bundle_milliseconds(target_url, access_token, release_bundle,
             print(f"::error::Response body: {response.text}")
         return None
 
+
 def get_release_bundle_names_with_project_keys(source_url, access_token):
     """
     Gets list of release bundles with project key from /lifecycle/api/v2/release_bundle/names.
@@ -95,7 +95,7 @@ def get_release_bundle_names_with_project_keys(source_url, access_token):
 
     try:
         response = requests.get(api_url, headers=headers, timeout=30)
-        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         
         data = response.json()
         return data
@@ -116,14 +116,12 @@ def get_release_bundle_names_with_project_keys(source_url, access_token):
 
 def main():
     # --- Input parameters from GitHub Actions Environment ---
-    # These are passed as environment variables to the Python script by the GitHub Actions workflow.
     access_token = os.getenv("ACCESS_TOKEN")
     source_url = os.getenv("SOURCE_URL")
     target_url = os.getenv("TARGET_URL")
     release_bundle_name = os.getenv("RELEASE_BUNDLE")
     bundle_version = os.getenv("BUNDLE_VERSION")
     environment = os.getenv("ENVIRONMENT")
-    # This is the 'repository_key' from the event, used to map to 'project_key'
     input_repository_key = os.getenv("REPOSITORY_KEY") 
 
     if not all([access_token, source_url, target_url, release_bundle_name, bundle_version, environment, input_repository_key]):
@@ -138,7 +136,7 @@ def main():
     print(f"Input Repository Key (for project lookup): {input_repository_key}")
 
     # --- 1. Get Project Key based on repository_key ---
-    project_key = "default" # Default to 'default' project if not found or no mapping
+    project_key = "default" 
     names_response = get_release_bundle_names_with_project_keys(source_url, access_token)
 
     if names_response and "release_bundles" in names_response:
@@ -147,28 +145,53 @@ def main():
                 project_key = rb_info.get("project_key", "default")
                 print(f"::notice::Matched repository_key '{input_repository_key}' to project_key '{project_key}'.")
                 break
-        else: # This 'else' belongs to the 'for' loop, executes if loop completes without 'break'
+        else:
             print(f"::warning::No project_key found for repository_key '{input_repository_key}'. Using default project 'default'.")
     else:
         print("::warning::Could not fetch release bundle names or 'release_bundles' list is empty. Using default project 'default'.")
 
     # --- 2. Get release bundle audit details ---
-    audit_data = get_release_bundle_details(source_url, access_token, release_bundle_name, bundle_version,project_key)
+    audit_data = get_release_bundle_details(source_url, access_token, release_bundle_name, bundle_version, project_key)
 
     if audit_data is None:
         print("::error::Failed to retrieve audit details. Exiting.")
         sys.exit(1)
-    print(str(audit_data))
-    # --- Extract required information from audit_data ---
-    first_audit = audit_data.get("audits", [{}])[0]
-    context = first_audit.get("context", {})
 
-    event_status = first_audit.get("event_status", "N/A")
+    print(f"::debug::Raw audit_data response: {json.dumps(audit_data)}") # For debugging, print raw response
+
+    # --- Find the first audit event where "event_status": "COMPLETED" and "subject_type": "PROMOTION" ---
+    # Skip the very first event if it's "EXTERNAL_EVIDENCE".
+    
+    promotion_audit_event = None
+    audits_list = audit_data.get("audits", [])
+
+    # Determine the starting index for search
+    start_index = 0
+    if audits_list and audits_list[0].get("subject_type") == "EXTERNAL_EVIDENCE":
+        print("::notice::First audit event is EXTERNAL_EVIDENCE, skipping it and checking next.")
+        start_index = 1 # Start search from the second event
+
+    # Iterate from the determined start_index to find the first COMPLETED PROMOTION event
+    for audit_event in audits_list[start_index:]:
+        if audit_event.get("subject_type") == "PROMOTION" and \
+           audit_event.get("event_status") == "COMPLETED":
+            promotion_audit_event = audit_event
+            print(f"::notice::Found the first COMPLETED PROMOTION event at index {audits_list.index(audit_event)} (relative to original list).")
+            break
+    
+    if promotion_audit_event is None:
+        print("::error::Could not find a COMPLETED PROMOTION event after potential evidence skip. Exiting.")
+        sys.exit(1)
+
+    # --- Extract required information from the PROMOTION audit event ---
+    context = promotion_audit_event.get("context", {}) 
+
+    event_status = promotion_audit_event.get("event_status", "N/A") 
     promotion_created_millis = context.get("promotion_created_millis", "N/A")
     included_repository_keys = context.get("included_repository_keys", [])
     excluded_repository_keys = context.get("excluded_repository_keys", [])
 
-    print("\n--- Extracted Release Bundle Details ---")
+    print("\n--- Extracted Release Bundle Details (from PROMOTION event) ---")
     print(f"Event Status: {event_status}")
     print(f"Promotion Created Millis: {promotion_created_millis}")
     print(f"Included Repository Keys: {included_repository_keys}")
@@ -201,6 +224,8 @@ def main():
     if exclude_repos_param:
         jf_rbp_command.append(exclude_repos_param)
     
+    jf_rbp_command.append("--target-server=target-server") 
+
     print("\n--- Executing JFrog CLI Command ---")
     print(f"Command: {' '.join(jf_rbp_command)}")
 
@@ -216,7 +241,6 @@ def main():
         sys.exit(e.returncode)
 
     # --- 3. Update release bundle promotion timestamp ---
-    # Call with the determined project_key
     updaterbresponse = update_release_bundle_milliseconds(target_url, access_token, release_bundle_name, bundle_version, promotion_created_millis, project_key)
     
     if updaterbresponse is None:
