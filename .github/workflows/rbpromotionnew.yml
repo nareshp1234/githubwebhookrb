@@ -58,8 +58,16 @@ jobs:
             ID_TOKEN: ${{env.ID_TOKEN}}
             JFROG_PLATFORM_URL: https://${{ inputs.sourceurl }}
         run: |
-            ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
-            echo "ACCESS_TOKEN=${ACCESS_TOKEN}" >> $GITHUB_ENV
+            SOURCE_ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
+            echo "SOURCE_ACCESS_TOKEN=${SOURCE_ACCESS_TOKEN}" >> $GITHUB_ENV
+
+      - name: Exchange token with access
+        env:
+            ID_TOKEN: ${{env.ID_TOKEN}}
+            JFROG_PLATFORM_URL: https://${{ inputs.targeturl }}
+        run: |
+            TARGET_ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"naresh-dr\"}" | jq .access_token | tr -d '"')
+            echo "TARGET_ACCESS_TOKEN=${TARGET_ACCESS_TOKEN}" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
       - name: Setup JFrog CLI
@@ -80,7 +88,8 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/promote_release_bundle.py
           python $GITHUB_WORKSPACE/promote_release_bundle.py
         env:
-          ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }} # Access token for source JPD audit API
+          SOURCE_ACCESS_TOKEN: ${{ env.SOURCE_ACCESS_TOKEN }} # Access token for source JPD audit API
+          TARGET_ACCESS_TOKEN: ${{ env.TARGET_ACCESS_TOKEN }} 
           SOURCE_URL: https://${{ inputs.sourceurl }}
           TARGET_URL: https://${{ inputs.targeturl }}
           RELEASE_BUNDLE: ${{ inputs.release_bundle }}
