@@ -4,13 +4,14 @@ import json
 import sys
 
 # This function is unchanged
-def get_release_bundle_details(source_url, access_token, release_bundle, bundle_version, project_key):
-    # ... (function content is the same as your original script)
+def get_release_bundle_details(source_url, access_token, repository_key, release_bundle, bundle_version, project_key):
     """
-    Fetches release bundle audit details from Artifactory.
+    Fetches release bundle audit details from Artifactory, specifying the source repository.
     Returns parsed JSON data or None on failure.
     """
-    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}?project={project_key}"
+    # This URL now includes the repository_key
+    api_url = f"{source_url}/lifecycle/api/v2/audit/{repository_key}/{release_bundle}/{bundle_version}?project={project_key}"
+    
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
@@ -115,7 +116,7 @@ def main():
     print(f"Determined Project Key: {project_key}")
 
     # Get promotion details from the SOURCE to replicate them
-    source_audit_data = get_release_bundle_details(source_url, source_access_token, release_bundle_name, bundle_version, project_key)
+    source_audit_data = get_release_bundle_details(source_url, source_access_token, input_repository_key,release_bundle_name, bundle_version, project_key)
     if source_audit_data is None:
         print("::error::Failed to retrieve audit details from source. Exiting.")
         sys.exit(1)
