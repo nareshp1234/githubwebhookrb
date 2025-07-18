@@ -1,5 +1,5 @@
 
-name: release_bundle_created
+name: release_bundle_target
 
 on:
   # workflow_dispatch is mandatory, so that Artifactory can trigger
