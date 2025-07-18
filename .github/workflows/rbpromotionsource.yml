@@ -66,7 +66,7 @@ jobs:
             ID_TOKEN: ${{env.ID_TOKEN}}
             JFROG_PLATFORM_URL: https://${{ inputs.targeturl }}
         run: |
-            TARGET_ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"naresh-dr\"}" | jq .access_token | tr -d '"')
+            TARGET_ACCESS_TOKEN=$(curl -v -XPOST -H "Content-Type: application/json" "${{ env.JFROG_PLATFORM_URL }}/access/api/v1/oidc/token" -d "{\"grant_type\": \"urn:ietf:params:oauth:grant-type:token-exchange\", \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\", \"subject_token\": \"${ID_TOKEN}\", \"provider_name\": \"nareshgithub\"}" | jq .access_token | tr -d '"')
             echo "TARGET_ACCESS_TOKEN=${TARGET_ACCESS_TOKEN}" >> $GITHUB_ENV
 
       # Use the specific setup-cli branch
@@ -77,7 +77,7 @@ jobs:
           JF_URL: https://${{ inputs.targeturl }}
           SETUP_JFROG_CLI_SERVER_IDS: target-server
         with:
-            oidc-provider-name: naresh-dr
+            oidc-provider-name: nareshgithub
             oidc-audience: ps-jfrog-oidc
 
 
