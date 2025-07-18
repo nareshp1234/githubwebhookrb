@@ -9,8 +9,8 @@ def get_release_bundle_details(source_url, access_token, repository_key, release
     Fetches release bundle audit details from Artifactory, specifying the source repository.
     Returns parsed JSON data or None on failure.
     """
-    # This URL now includes the repository_key
-    api_url = f"{source_url}/lifecycle/api/v2/audit/{repository_key}/{release_bundle}/{bundle_version}?project={project_key}"
+    # CORRECTED URL: The repository_key is now a query parameter, not part of the path.
+    api_url = f"{source_url}/lifecycle/api/v2/audit/{release_bundle}/{bundle_version}?project={project_key}&repository_key={repository_key}"
     
     headers = {
         "Authorization": f"Bearer {access_token}",
