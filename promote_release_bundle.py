@@ -31,6 +31,7 @@ def get_release_bundle_details(url, access_token, repository_key, release_bundle
         print(f"::error::Failed to decode JSON response from {api_url}: {e}")
         return None
 
+# This function is unchanged from your original
 def update_release_bundle_milliseconds(target_url, access_token, release_bundle, bundle_version, promotion_created_millis, project_key="default"):
     """
     Updates release bundle with correct timestamp for a specific promotion record.
@@ -57,6 +58,7 @@ def update_release_bundle_milliseconds(target_url, access_token, release_bundle,
         print(f"::error::API request failed to {api_url}: {e}")
         return None
 
+# This function is unchanged from your original
 def get_release_bundle_names_with_project_keys(source_url, access_token):
     """
     Gets list of release bundles with project key from /lifecycle/api/v2/release_bundle/names.
@@ -126,12 +128,14 @@ def main():
     print("----------------------------------------------------------")
 
     # --- 2. Get release bundle audit details from SOURCE (Original Logic) ---
-
+    # MODIFIED to use the updated function signature
     audit_data = get_release_bundle_details(source_url, source_access_token, input_repository_key, release_bundle_name, bundle_version, project_key)
 
     if audit_data is None:
         print("::error::Failed to retrieve audit details from source. Exiting.")
         sys.exit(1)
+
+    # ... The rest of your original script logic continues unchanged ...
     
     promotion_audit_event = None
     audits_list = audit_data.get("audits", [])
@@ -141,4 +145,73 @@ def main():
         start_index = 1
 
     for audit_event in audits_list[start_index:]:
-        if audit_event.get("subject
+        if audit_event.get("subject_type") == "PROMOTION" and audit_event.get("event_status") == "COMPLETED":
+            promotion_audit_event = audit_event
+            print(f"::notice::Found the first COMPLETED PROMOTION event at index {audits_list.index(audit_event)}.")
+            break
+    
+    if promotion_audit_event is None:
+        print("::error::Could not find a COMPLETED PROMOTION event after potential evidence skip. Exiting.")
+        sys.exit(1)
+
+    context = promotion_audit_event.get("context", {}) 
+    promotion_created_millis = context.get("promotion_created_millis", "0")
+    included_repository_keys = context.get("included_repository_keys", [])
+    excluded_repository_keys = context.get("excluded_repository_keys", [])
+
+    print("\n--- Extracted Release Bundle Details (from PROMOTION event) ---")
+    print(f"Included Repository Keys: {included_repository_keys}")
+    print(f"Excluded Repository Keys: {excluded_repository_keys}")
+    print(f"Determined Project Key: {project_key}")
+    print("----------------------------------------")
+
+    include_repos_param = ""
+    if included_repository_keys:
+        include_repos_str = ",".join(included_repository_keys)
+        include_repos_param = f"--include-repos={include_repos_str}"
+
+    exclude_repos_param = ""
+    if excluded_repository_keys:
+        exclude_repos_str = ",".join(excluded_repository_keys)
+        exclude_repos_param = f"--exclude-repos={exclude_repos_str}"
+
+    jf_rbp_command = [
+        "jf", "rbp",
+        release_bundle_name,
+        bundle_version,
+        environment,
+        f"--project={project_key}"
+    ]
+
+    if include_repos_param:
+        jf_rbp_command.append(include_repos_param)
+    if exclude_repos_param:
+        jf_rbp_command.append(exclude_repos_param) 
+
+    print("\n--- Executing JFrog CLI Command ---")
+    print(f"Command: {' '.join(jf_rbp_command)}")
+
+    try:
+        result = subprocess.run(jf_rbp_command, check=True, capture_output=True, text=True)
+        print("STDOUT:\n", result.stdout)
+        print("STDERR:\n", result.stderr)
+        print("::notice::Release bundle promotion command executed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"::error::Release bundle promotion command failed with exit code {e.returncode}")
+        print("STDOUT:\n", e.stdout)
+        print("STDERR:\n", e.stderr)
+        sys.exit(e.returncode)
+
+    # --- 3. Update release bundle promotion timestamp ---
+    updaterbresponse = update_release_bundle_milliseconds(target_url, target_access_token, release_bundle_name, bundle_version, promotion_created_millis, project_key)
+    
+    if updaterbresponse is None:
+        print("::error::Failed to update release bundle promotion timestamp.")
+        sys.exit(1)
+    else:
+        print("\n--- Update Release Bundle Timestamp Response ---")
+        print(json.dumps(updaterbresponse, indent=2))
+        print("------------------------------------------------")
+
+if __name__ == "__main__":
+    main()
